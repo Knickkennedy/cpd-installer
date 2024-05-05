@@ -6,3 +6,5 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+/root-podman/cpd-cli-linux-SE-13.1.5.tgz
+/root-podman/oc.tar

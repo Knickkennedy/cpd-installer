@@ -1,0 +1,75 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cpd-install-variables
+  namespace: default
+immutable: false
+data:
+  OCP_URL: "api.6610b294773d94001e53e978.cloud.techzone.ibm.com:6443"
+  OPENSHIFT_TYPE: "self-managed"
+  OCP_USERNAME: "kubeadmin"
+  OCP_PASSWORD: "FHXzs-h6qyF-y5DXK-M4mDn"
+  IMAGE_ARCH: "amd64"
+  IBM_ENTITLEMENT_KEY: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE3MDI0Nzc2NjMsImp0aSI6IjE1MTE0MzVlNDQ0MDQ1MGViNTM0ODEyNTlhN2NhZDRmIn0.kmIuOd4vs1hsG6i5DhMEQglSv86oP4GD0xX8vV_Sh3Q"
+  PROJECT_CPD_INST_OPERANDS: "cp4d"
+  PROJECT_CPD_INST_OPERATORS: "cp4d-operators"
+  PROJECT_SCHEDULING_SERVICE: "ibm-cpd-scheduler"
+  PROJECT_LICENSE_SERVICE: "ibm-licensing"
+  PROJECT_CERT_MANAGE: "ibm-cert-manager"
+  STG_CLASS_FILE: "ocs-storagecluster-cephfs"
+  STG_CLASS_BLOCK: "ocs-storagecluster-ceph-rbd"
+  VERSION: "4.8.5"
+  COMPONENTS: "ibm-cert-manager,ibm-licensing,scheduler,cpfs,cpd_platform"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cp4d-install-account
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cp4d-install-account-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: cp4d-install-account
+    namespace: default
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: cp4d-pidslimit-kubeletconfig
+spec:
+  kubeletConfig:
+    podPidsLimit: 16384
+  machineConfigPoolSelector:
+    matchExpressions:
+    - key: pools.operator.machineconfiguration.openshift.io/worker
+      operator: Exists
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cpd-installer
+  namespace: default
+spec:
+  template:
+    spec:
+      serviceAccountName: cp4d-install-account
+      containers:
+        - name: cpd-installer
+          image: docker.io/knickkennedy/cpd-installer:v0.05
+          command: [ "ansible-playbook", "playbook/main.yml" ]
+          securityContext:
+            privileged: true
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: cpd-install-variables
+      restartPolicy: Never
+  backoffLimit: 4

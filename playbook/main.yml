@@ -1,0 +1,7 @@
+---
+- name: Cluster prep
+  hosts: localhost
+  gather_facts: true
+  roles:
+    - role: prereq
+    - role: cp4d

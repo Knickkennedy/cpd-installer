@@ -10,8 +10,6 @@
     project_scheduling_service="{{ lookup('env', 'PROJECT_SCHEDULING_SERVICE') }}"
     project_cpd_inst_operators="{{ lookup('env', 'PROJECT_CPD_INST_OPERATORS') }}"
     project_cpd_inst_operands="{{ lookup('env', 'PROJECT_CPD_INST_OPERANDS') }}"
-    stg_class_block="{{ lookup('env', 'STG_CLASS_BLOCK') }}"
-    stg_class_file="{{ lookup('env', 'STG_CLASS_FILE') }}"
     ibm_entitlement_key="{{ lookup('env', 'IBM_ENTITLEMENT_KEY') }}"
     version="{{ lookup('env', 'VERSION') }}"
     components="{{ lookup('env', 'COMPONENTS') }}"

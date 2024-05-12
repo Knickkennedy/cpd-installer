@@ -1,0 +1,24 @@
+---
+- name: Loop over storage classes on cluster
+  kubernetes.core.k8s_info:
+    api_version: storage.k8s.io/v1
+    kind: StorageClass
+  register: sc_list
+- name: Detect file storage
+  set_fact:
+    stg_class_file: "{{ sc_list.resources | 
+                          selectattr('provisioner', 'eq', 'openshift-storage.cephfs.csi.ceph.com') | 
+                          map(attribute='metadata.name') |
+                          first }}"
+- name: Detect block storage
+  set_fact:
+    stg_class_block: "{{ sc_list.resources | 
+                              selectattr('provisioner', 'eq', 'openshift-storage.rbd.csi.ceph.com') | 
+                              map(attribute='metadata.name') |
+                              first }}"
+#  debug:
+#    msg: "{{ item.metadata.name }}"
+#  loop: "{{ sc_list.resources }}"
+#  loop_control:
+#    index_var: index
+#  when: item.provisioner == 'openshift-storage.cephfs.csi.ceph.com'

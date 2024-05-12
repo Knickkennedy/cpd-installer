@@ -63,7 +63,7 @@ spec:
       serviceAccountName: cp4d-install-account
       containers:
         - name: cpd-installer
-          image: docker.io/knickkennedy/cpd-installer:v0.05
+          image: docker.io/knickkennedy/cpd-installer:v4.8.5
           command: [ "ansible-playbook", "playbook/main.yml" ]
           securityContext:
             privileged: true

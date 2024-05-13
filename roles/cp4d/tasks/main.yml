@@ -39,6 +39,7 @@
     state: present
 - name: Authorize instance topology across namespaces
   ansible.builtin.shell: |
+    cpd-cli manage login-to-ocp --username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}
     cpd-cli manage authorize-instance-topology --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --cpd_instance_ns={{ project_cpd_inst_operands | quote }}
     cpd-cli manage setup-instance-topology --release={{ version | quote}} --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --license_acceptance="true" --block_storage_class={{ stg_class_block | quote }}
 - name: Apply the OLM

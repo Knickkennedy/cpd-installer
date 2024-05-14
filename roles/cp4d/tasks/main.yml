@@ -1,4 +1,5 @@
 ---
+# Verify openshift version early
 - name: Log cpd-cli into Openshift
   ansible.builtin.shell: cpd-cli manage login-to-ocp --username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}
 - name: Update global pull secret with IBM Entitlement Key
@@ -37,10 +38,20 @@
     api_version: v1
     kind: Namespace
     state: present
-- name: Authorize instance topology across namespaces
+- name: Log in to OCP a second time
   ansible.builtin.shell: |
     cpd-cli manage login-to-ocp --username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}
+- name: Create the cert manager and licensing operators and namespaces
+  ansible.builtin.shell: |
+    cpd-cli manage apply-cluster-components --release={{ version | quote }} --license_acceptance="true" --cert_manager_ns={{ project_cert_manage | quote }} --licensing_ns={{ project_license_service }}
+- name: Install the scheduling service
+  ansible.builtin.shell: |
+    cpd-cli manage apply-scheduler --release={{ version | quote }} --license_acceptance="true" --scheduler_ns={{ project_scheduling_service | quote }}
+- name: Authorize instance topology across namespaces
+  ansible.builtin.shell: |
     cpd-cli manage authorize-instance-topology --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --cpd_instance_ns={{ project_cpd_inst_operands | quote }}
+- name: Setup the instance topology
+  ansible.builtin.shell: |
     cpd-cli manage setup-instance-topology --release={{ version | quote}} --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --license_acceptance="true" --block_storage_class={{ stg_class_block | quote }}
 - name: Apply the OLM
   ansible.builtin.shell: |

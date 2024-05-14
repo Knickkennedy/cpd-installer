@@ -10,10 +10,10 @@ metadata:
   namespace: cp4d-install
 immutable: false
 data:
-  OCP_URL: "api.6610b294773d94001e53e978.cloud.techzone.ibm.com:6443"
+  OCP_URL: "api.66435d5aca5b92001e292506.cloud.techzone.ibm.com:6443"
   OPENSHIFT_TYPE: "self-managed"
   OCP_USERNAME: "kubeadmin"
-  OCP_PASSWORD: "FHXzs-h6qyF-y5DXK-M4mDn"
+  OCP_PASSWORD: "HCEbr-tWtPJ-JQdfv-uqq3R"
   IMAGE_ARCH: "amd64"
   IBM_ENTITLEMENT_KEY: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE3MDI0Nzc2NjMsImp0aSI6IjE1MTE0MzVlNDQ0MDQ1MGViNTM0ODEyNTlhN2NhZDRmIn0.kmIuOd4vs1hsG6i5DhMEQglSv86oP4GD0xX8vV_Sh3Q"
   PROJECT_CPD_INST_OPERANDS: "cp4d"
@@ -69,7 +69,7 @@ spec:
       serviceAccountName: cp4d-install-account
       containers:
         - name: cpd-installer
-          image: docker.io/knickkennedy/cpd-installer:v4.8.5
+          image: quay.io/skol/cpd-installer:v4.8.5
           command: [ "ansible-playbook", "playbook/main.yml" ]
           securityContext:
             privileged: true

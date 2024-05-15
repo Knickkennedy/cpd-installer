@@ -1,7 +1,7 @@
 ---
 # Verify openshift version early
 - name: Log cpd-cli into Openshift
-  ansible.builtin.shell: cpd-cli manage login-to-ocp --username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}
+  ansible.builtin.shell: cpd-cli manage login-to-ocp {{ ocp_login }}
 - name: Update global pull secret with IBM Entitlement Key
   ansible.builtin.shell: cpd-cli manage add-icr-cred-to-global-pull-secret --entitled_registry_key={{ ibm_entitlement_key | quote}}
 - name: Wait for Master MachineConfigPool to finish updating
@@ -40,7 +40,7 @@
     state: present
 - name: Log in to OCP a second time
   ansible.builtin.shell: |
-    cpd-cli manage login-to-ocp --username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}
+    cpd-cli manage login-to-ocp {{ ocp_login }}
 - name: Create the cert manager and licensing operators and namespaces
   ansible.builtin.shell: |
     cpd-cli manage apply-cluster-components --release={{ version | quote }} --license_acceptance="true" --cert_manager_ns={{ project_cert_manage | quote }} --licensing_ns={{ project_license_service }}

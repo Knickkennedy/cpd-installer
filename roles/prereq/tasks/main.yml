@@ -5,6 +5,7 @@
     image_arch="{{ lookup('env', 'IMAGE_ARCH') }}"
     ocp_username="{{ lookup('env', 'OCP_USERNAME') }}"
     ocp_password="{{ lookup('env', 'OCP_PASSWORD') }}"
+    ocp_token="{{ lookup('env', 'OCP_TOKEN') }}"
     project_cert_manage="{{ lookup('env', 'PROJECT_CERT_MANAGE') }}"
     project_license_service="{{ lookup('env', 'PROJECT_LICENSE_SERVICE') }}"
     project_scheduling_service="{{ lookup('env', 'PROJECT_SCHEDULING_SERVICE') }}"
@@ -33,12 +34,21 @@
           ansible.builtin.assert:
             that:
               - ocp_version is version('4.12.0', '>=', version_type='semver')
-    - name: Verify 'OCP_URL' environment variable exists
+    - name: Verify Login Credentials for the cluster
       ansible.builtin.assert:
         that:
         - ocp_url is defined and ocp_url | length > 1
-        fail_msg: "'OCP_URL' must be defined in order to run the installation of CP4D"
-        success_msg: "'OCP_URL' found: {{ ocp_url }}"
+        - ((ocp_username is defined and ocp_username | length > 1) and (ocp_password is defined and ocp_password | length > 1)) or ocp_token is defined and ocp_token | length > 1
+        fail_msg: "Double check login credentials for OCP in order to install CP4D successfully"
+        success_msg: "Login credentials are populated"
+    - name: Configure cpd-cli login credentials
+      set_fact:
+        ocp_login="--username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}"
+      when: ((ocp_username is defined and ocp_username | length > 1) and (ocp_password is defined and ocp_password | length > 1))
+    - name: Configure cpd-cli login credentials
+      set_fact:
+        ocp_login="--server={{ ocp_url | quote }} --token={{ ocp_token | quote }}"
+      when: ocp_username | length < 1 and ocp_password | length < 1 and ocp_token is defined and ocp_token | length > 1
     - name: Verify 'OPENSHIFT_TYPE' environment variable exists
       ansible.builtin.assert:
         that:
@@ -51,18 +61,6 @@
           - image_arch is defined and image_arch | length > 1
         fail_msg: "'IMAGE_ARCH' must be defined in order to run the installation of CP4D"
         success_msg: "'IMAGE_ARCH' found: {{ image_arch }}"
-    - name: Verify 'OCP_USERNAME' environment variable exists
-      ansible.builtin.assert:
-        that:
-          - ocp_username is defined and ocp_username | length > 1
-        fail_msg: "'OCP_USERNAME' must be defined in order to run the installation of CP4D"
-        success_msg: "'OCP_USERNAME' found: {{ ocp_username }}"
-    - name: Verify 'OCP_PASSWORD' environment variable exists
-      ansible.builtin.assert:
-        that:
-          - ocp_password is defined and ocp_password | length > 1
-        fail_msg: "'OCP_PASSWORD' must be defined in order to run the installation of CP4D"
-        success_msg: "'OCP_PASSWORD' found: {{ ocp_password }}"
     - name: Verify 'PROJECT_CERT_MANAGE' environment variable exists
       ansible.builtin.assert:
         that:

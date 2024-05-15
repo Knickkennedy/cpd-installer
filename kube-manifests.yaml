@@ -12,8 +12,9 @@ immutable: false
 data:
   OCP_URL: ""
   OPENSHIFT_TYPE: "self-managed"
-  OCP_USERNAME: ""
-  OCP_PASSWORD: ""
+  #OCP_USERNAME: ""
+  #OCP_PASSWORD: ""
+  #OCP_TOKEN: ""
   IMAGE_ARCH: "amd64"
   IBM_ENTITLEMENT_KEY: ""
   PROJECT_CPD_INST_OPERANDS: "cp4d"

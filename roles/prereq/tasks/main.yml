@@ -17,6 +17,22 @@
     components="{{ lookup('env', 'COMPONENTS') }}"
 - name: Check prereqs
   block:
+    - name: Check OCP Version
+      block:
+        - name: Gather version of Openshift we are deployed to
+          kubernetes.core.k8s_info:
+            api_version: config.openshift.io/v1
+            kind: ClusterVersion
+          register: cv_list
+        - name: Parse out OCP Version
+          set_fact:
+            ocp_version: "{{ cv_list.resources |
+                                map(attribute='status.desired.version') |
+                                first }}"
+        - name: Verify version of Openshift for CP4D to install correctly
+          ansible.builtin.assert:
+            that:
+              - ocp_version is version('4.12.0', '>=', version_type='semver')
     - name: Verify 'OCP_URL' environment variable exists
       ansible.builtin.assert:
         that:

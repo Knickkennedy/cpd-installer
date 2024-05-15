@@ -10,12 +10,12 @@ metadata:
   namespace: cp4d-install
 immutable: false
 data:
-  OCP_URL: "api.66435d5aca5b92001e292506.cloud.techzone.ibm.com:6443"
+  OCP_URL: ""
   OPENSHIFT_TYPE: "self-managed"
-  OCP_USERNAME: "kubeadmin"
-  OCP_PASSWORD: "HCEbr-tWtPJ-JQdfv-uqq3R"
+  OCP_USERNAME: ""
+  OCP_PASSWORD: ""
   IMAGE_ARCH: "amd64"
-  IBM_ENTITLEMENT_KEY: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE3MDI0Nzc2NjMsImp0aSI6IjE1MTE0MzVlNDQ0MDQ1MGViNTM0ODEyNTlhN2NhZDRmIn0.kmIuOd4vs1hsG6i5DhMEQglSv86oP4GD0xX8vV_Sh3Q"
+  IBM_ENTITLEMENT_KEY: ""
   PROJECT_CPD_INST_OPERANDS: "cp4d"
   PROJECT_CPD_INST_OPERATORS: "cp4d-operators"
   PROJECT_SCHEDULING_SERVICE: "ibm-cpd-scheduler"

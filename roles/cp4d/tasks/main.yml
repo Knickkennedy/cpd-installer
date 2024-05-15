@@ -59,3 +59,10 @@
 - name: Apply the CRs (Custom Resources)
   ansible.builtin.shell: |
     cpd-cli manage apply-cr --release={{ version | quote}} --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --components={{ components | quote }} --block_storage_class={{ stg_class_block | quote }} --file_storage_class={{ stg_class_file | quote }} --license_acceptance="true"
+- name: Get CP4D Instance Details
+  ansible.builtin.shell: |
+    cpd-cli manage get-cpd-instance-details --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --get_admin_initial_credentials="true"
+  register: output
+- name: CP4D Credentials
+  debug:
+    msg: "{{ output.stdout_lines }}"

@@ -1,7 +1,8 @@
 ---
 # Verify openshift version early
 - name: Log cpd-cli into Openshift
-  ansible.builtin.shell: cpd-cli manage login-to-ocp {{ ocp_login }}
+  ansible.builtin.shell: |
+    cpd-cli manage login-to-ocp {{ ocp_login }}
 - name: Update global pull secret with IBM Entitlement Key
   ansible.builtin.shell: cpd-cli manage add-icr-cred-to-global-pull-secret --entitled_registry_key={{ ibm_entitlement_key | quote}}
 - name: Wait for Master MachineConfigPool to finish updating

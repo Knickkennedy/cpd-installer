@@ -1,0 +1,7 @@
+---
+- name: Uninstall Cloud Pak for Data and Components
+  hosts: localhost
+  gather_facts: true
+  roles:
+    - role: prereq
+    - role: uninstall-cp4d

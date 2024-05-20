@@ -12,8 +12,8 @@ immutable: false
 data:
   OCP_URL: ""
   OPENSHIFT_TYPE: "self-managed"
-  #OCP_USERNAME: ""
-  #OCP_PASSWORD: ""
+  OCP_USERNAME: ""
+  OCP_PASSWORD: ""
   #OCP_TOKEN: ""
   IMAGE_ARCH: "amd64"
   IBM_ENTITLEMENT_KEY: ""
@@ -27,6 +27,7 @@ data:
   VERSION: "4.8.5"
   COMPONENTS: "ibm-cert-manager,ibm-licensing,scheduler,cpfs,cpd_platform"
   PODMAN_IGNORE_CGROUPSV1_WARNING: "true"
+  COMMAND: "uninstall"
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -71,7 +72,7 @@ spec:
       containers:
         - name: cpd-installer
           image: quay.io/skol/cpd-installer:v4.8.5
-          command: [ "ansible-playbook", "playbook/main.yml" ]
+          command: [ "ansible-playbook", "playbook/$(COMMAND).yml" ]
           securityContext:
             privileged: true
           imagePullPolicy: Always

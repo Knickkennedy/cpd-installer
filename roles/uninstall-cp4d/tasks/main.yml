@@ -1,0 +1,28 @@
+---
+- name: Log cpd-cli into Openshift
+  ansible.builtin.shell: |
+    cpd-cli manage login-to-ocp {{ ocp_login }}
+- name: Delete CRs of individual instances and their dependencies
+  ansible.builtin.shell: |
+    cpd-cli manage delete-cr --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --components={{ components | quote }} --include_dependency="true"
+- name: Delete the OLM associated with our CRDs
+  ansible.builtin.shell: |
+    cpd-cli manage delete-olm-artifacts --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --delete_all_components="true"
+- name: Remove CP4D Instance Namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ project_cpd_inst_operands }}"
+    state: absent
+- name: Remove CP4D Operators Namespace
+  kubernetes.core.k8s:
+    apiVersion: v1
+    kind: Namespace
+    name: "{{ project_cpd_inst_operators }}"
+    state: absent
+- name: Remove cpd scheduling service if it exists
+  kubernetes.core.k8s:
+    api_version: scheduler.spectrumcomputing.ibm.com/v1
+    kind: Scheduling
+    name: ibm-cpd-scheduler
+    state: absent

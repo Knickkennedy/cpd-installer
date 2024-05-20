@@ -97,12 +97,42 @@
           - stg_class_block is defined and stg_class_block | length > 1
         fail_msg: "'STG_CLASS_BLOCK' must be defined in order to run the installation of CP4D"
         success_msg: "'STG_CLASS_BLOCK' found: {{ stg_class_block }}"
+    - name: Gather facts about block storage
+      kubernetes.core.k8s_info:
+        api_version: storage.k8s.io/v1
+        kind: StorageClass
+        name: "{{ stg_class_block }}"
+      register: sc_block_list
+    - name: Set block storage facts
+      set_fact:
+        ocp_block: "{{ sc_block_list.resources |
+                                map(attribute='metadata.name') |
+                                first }}"
+    - name: "Verify that {{ stg_class_block }} exists in cluster"
+      ansible.builtin.assert:
+        that:
+          - ocp_block | length > 1
     - name: Verify 'STG_CLASS_FILE' environment variable exists
       ansible.builtin.assert:
         that:
           - stg_class_file is defined and stg_class_file | length > 1
         fail_msg: "'STG_CLASS_FILE' must be defined in order to run the installation of CP4D"
         success_msg: "'STG_CLASS_FILE' found: {{ stg_class_file }}"
+    - name: Gather facts about file storage
+      kubernetes.core.k8s_info:
+        api_version: storage.k8s.io/v1
+        kind: StorageClass
+        name: "{{ stg_class_file }}"
+      register: sc_file_list
+    - name: Set file storage facts
+      set_fact:
+        ocp_file: "{{ sc_file_list.resources |
+                                map(attribute='metadata.name') |
+                                first }}"
+    - name: "Verify that {{ stg_class_file }} exists in cluster"
+      ansible.builtin.assert:
+        that:
+          - ocp_file | length > 1
     - name: Verify 'IBM_ENTITLEMENT_KEY' environment variable exists
       ansible.builtin.assert:
         that:

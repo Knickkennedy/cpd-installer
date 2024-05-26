@@ -1,21 +1,22 @@
 ---
-- set_fact:
-    ocp_url="{{ lookup('env', 'OCP_URL') }}"
-    openshift_type="{{ lookup('env', 'OPENSHIFT_TYPE') }}"
-    image_arch="{{ lookup('env', 'IMAGE_ARCH') }}"
-    ocp_username="{{ lookup('env', 'OCP_USERNAME') }}"
-    ocp_password="{{ lookup('env', 'OCP_PASSWORD') }}"
-    ocp_token="{{ lookup('env', 'OCP_TOKEN') }}"
-    project_cert_manage="{{ lookup('env', 'PROJECT_CERT_MANAGE') }}"
-    project_license_service="{{ lookup('env', 'PROJECT_LICENSE_SERVICE') }}"
-    project_scheduling_service="{{ lookup('env', 'PROJECT_SCHEDULING_SERVICE') }}"
-    project_cpd_inst_operators="{{ lookup('env', 'PROJECT_CPD_INST_OPERATORS') }}"
-    project_cpd_inst_operands="{{ lookup('env', 'PROJECT_CPD_INST_OPERANDS') }}"
-    stg_class_block="{{ lookup('env', 'STG_CLASS_BLOCK') }}"
-    stg_class_file="{{ lookup('env', 'STG_CLASS_FILE') }}"
-    ibm_entitlement_key="{{ lookup('env', 'IBM_ENTITLEMENT_KEY') }}"
-    version="{{ lookup('env', 'VERSION') }}"
-    components="{{ lookup('env', 'COMPONENTS') }}"
+- name: Set initial facts for verification
+  ansible.builtin.set_fact:
+    ocp_url: "{{ lookup('env', 'OCP_URL') }}"
+    openshift_type: "{{ lookup('env', 'OPENSHIFT_TYPE') }}"
+    image_arch: "{{ lookup('env', 'IMAGE_ARCH') }}"
+    ocp_username: "{{ lookup('env', 'OCP_USERNAME') }}"
+    ocp_password: "{{ lookup('env', 'OCP_PASSWORD') }}"
+    ocp_token: "{{ lookup('env', 'OCP_TOKEN') }}"
+    project_cert_manage: "{{ lookup('env', 'PROJECT_CERT_MANAGE') }}"
+    project_license_service: "{{ lookup('env', 'PROJECT_LICENSE_SERVICE') }}"
+    project_scheduling_service: "{{ lookup('env', 'PROJECT_SCHEDULING_SERVICE') }}"
+    project_cpd_inst_operators: "{{ lookup('env', 'PROJECT_CPD_INST_OPERATORS') }}"
+    project_cpd_inst_operands: "{{ lookup('env', 'PROJECT_CPD_INST_OPERANDS') }}"
+    stg_class_block: "{{ lookup('env', 'STG_CLASS_BLOCK') }}"
+    stg_class_file: "{{ lookup('env', 'STG_CLASS_FILE') }}"
+    ibm_entitlement_key: "{{ lookup('env', 'IBM_ENTITLEMENT_KEY') }}"
+    version: "{{ lookup('env', 'VERSION') }}"
+    components: "{{ lookup('env', 'COMPONENTS') }}"
 - name: Check prereqs
   block:
     - name: Check OCP Version
@@ -26,7 +27,7 @@
             kind: ClusterVersion
           register: cv_list
         - name: Parse out OCP Version
-          set_fact:
+          ansible.builtin.set_fact:
             ocp_version: "{{ cv_list.resources |
                                 map(attribute='status.desired.version') |
                                 first }}"
@@ -34,20 +35,28 @@
           ansible.builtin.assert:
             that:
               - ocp_version is version('4.12.0', '>=', version_type='semver')
-    - name: Verify Login Credentials for the cluster
+    - name: Verify cluster URL was provided
       ansible.builtin.assert:
         that:
-        - ocp_url is defined and ocp_url | length > 1
-        - ((ocp_username is defined and ocp_username | length > 1) and (ocp_password is defined and ocp_password | length > 1)) or ocp_token is defined and ocp_token | length > 1
+          - ocp_url is defined and ocp_url | length > 1
+    - name: Verify Login Credentials for the cluster
+      ansible.builtin.assert:
+        that: >
+          ((ocp_username is defined and ocp_username | length > 1) and
+          (ocp_password is defined and ocp_password | length > 1)) or
+          ocp_token is defined and ocp_token | length > 1
         fail_msg: "Double check login credentials for OCP in order to install CP4D successfully"
         success_msg: "Login credentials are populated"
     - name: Configure cpd-cli login credentials
-      set_fact:
-        ocp_login="--username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}"
-      when: ((ocp_username is defined and ocp_username | length > 1) and (ocp_password is defined and ocp_password | length > 1))
+      ansible.builtin.set_fact:
+        ocp_login: >-
+          "--username={{ ocp_username | quote }} --password={{ ocp_password | quote }} --server={{ ocp_url | quote }}"
+      when: >-
+        ((ocp_username is defined and ocp_username | length > 1) and
+        (ocp_password is defined and ocp_password | length > 1))
     - name: Configure cpd-cli login credentials
-      set_fact:
-        ocp_login="--server={{ ocp_url | quote }} --token={{ ocp_token | quote }}"
+      ansible.builtin.set_fact:
+        ocp_login: "--server={{ ocp_url | quote }} --token={{ ocp_token | quote }}"
       when: ocp_username | length < 1 and ocp_password | length < 1 and ocp_token is defined and ocp_token | length > 1
     - name: Verify 'OPENSHIFT_TYPE' environment variable exists
       ansible.builtin.assert:
@@ -104,11 +113,11 @@
         name: "{{ stg_class_block }}"
       register: sc_block_list
     - name: Set block storage facts
-      set_fact:
+      ansible.builtin.set_fact:
         ocp_block: "{{ sc_block_list.resources |
                                 map(attribute='metadata.name') |
                                 first }}"
-    - name: "Verify that {{ stg_class_block }} exists in cluster"
+    - name: "Verify that block storage class provided exists in cluster"
       ansible.builtin.assert:
         that:
           - ocp_block | length > 1
@@ -125,11 +134,11 @@
         name: "{{ stg_class_file }}"
       register: sc_file_list
     - name: Set file storage facts
-      set_fact:
+      ansible.builtin.set_fact:
         ocp_file: "{{ sc_file_list.resources |
                                 map(attribute='metadata.name') |
                                 first }}"
-    - name: "Verify that {{ stg_class_file }} exists in cluster"
+    - name: "Verify that file storage class exists in cluster"
       ansible.builtin.assert:
         that:
           - ocp_file | length > 1
@@ -138,22 +147,16 @@
         that:
           - ibm_entitlement_key is defined and ibm_entitlement_key | length > 1
         fail_msg: "'IBM_ENTITLEMENT_KEY' must be defined in order to run the installation of CP4D"
-        success_msg: "'IBM_ENTITLEMENT_KEY' found: {{ ibm_entitlement_key }}"        
+        success_msg: "'IBM_ENTITLEMENT_KEY' found: {{ ibm_entitlement_key }}"
     - name: Verify 'VERSION' environment variable exists
       ansible.builtin.assert:
         that:
           - version is defined and version | length > 1
         fail_msg: "'VERSION' must be defined in order to run the installation of CP4D"
-        success_msg: "'VERSION' found: {{ version }}"        
+        success_msg: "'VERSION' found: {{ version }}"
     - name: Verify 'COMPONENTS' environment variable exists
       ansible.builtin.assert:
         that:
           - components is defined and components | length > 1
         fail_msg: "'COMPONENTS' must be defined in order to run the installation of CP4D"
-        success_msg: "'COMPONENTS' found: {{ components }}"        
-        
-        
-        
-        
-        
-        
+        success_msg: "'COMPONENTS' found: {{ components }}"

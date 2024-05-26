@@ -1,0 +1,4 @@
+{
+    "ansible.python.interpreterPath": "/bin/python3",
+    "ansible.validation.lint.path": "/home/knick/.local/bin/ansible-lint"
+}

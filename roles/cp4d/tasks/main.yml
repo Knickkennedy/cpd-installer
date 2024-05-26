@@ -3,8 +3,12 @@
 - name: Log cpd-cli into Openshift
   ansible.builtin.shell: |
     cpd-cli manage login-to-ocp {{ ocp_login }}
+  changed_when: false
 - name: Update global pull secret with IBM Entitlement Key
-  ansible.builtin.shell: cpd-cli manage add-icr-cred-to-global-pull-secret --entitled_registry_key={{ ibm_entitlement_key | quote}}
+  ansible.builtin.shell: |
+    cpd-cli manage add-icr-cred-to-global-pull-secret \
+    --entitled_registry_key={{ ibm_entitlement_key | quote }}
+  changed_when: false
 - name: Wait for Master MachineConfigPool to finish updating
   kubernetes.core.k8s:
     definition:
@@ -42,28 +46,62 @@
 - name: Log in to OCP a second time
   ansible.builtin.shell: |
     cpd-cli manage login-to-ocp {{ ocp_login }}
+  changed_when: false
 - name: Create the cert manager and licensing operators and namespaces
   ansible.builtin.shell: |
-    cpd-cli manage apply-cluster-components --release={{ version | quote }} --license_acceptance="true" --cert_manager_ns={{ project_cert_manage | quote }} --licensing_ns={{ project_license_service }}
+    cpd-cli manage apply-cluster-components \
+    --release={{ version | quote }} \
+    --license_acceptance="true" \
+    --cert_manager_ns={{ project_cert_manage | quote }} \
+    --licensing_ns={{ project_license_service }}
+  changed_when: false
 - name: Install the scheduling service
   ansible.builtin.shell: |
-    cpd-cli manage apply-scheduler --release={{ version | quote }} --license_acceptance="true" --scheduler_ns={{ project_scheduling_service | quote }}
+    cpd-cli manage apply-scheduler \
+    --release={{ version | quote }} \
+    --license_acceptance="true" \
+    --scheduler_ns={{ project_scheduling_service | quote }}
+  changed_when: false
 - name: Authorize instance topology across namespaces
   ansible.builtin.shell: |
-    cpd-cli manage authorize-instance-topology --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --cpd_instance_ns={{ project_cpd_inst_operands | quote }}
+    cpd-cli manage authorize-instance-topology \
+    --cpd_operator_ns={{ project_cpd_inst_operators | quote }} \
+    --cpd_instance_ns={{ project_cpd_inst_operands | quote }}
+  changed_when: false
 - name: Setup the instance topology
   ansible.builtin.shell: |
-    cpd-cli manage setup-instance-topology --release={{ version | quote}} --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --license_acceptance="true" --block_storage_class={{ stg_class_block | quote }}
+    cpd-cli manage setup-instance-topology \
+    --release={{ version | quote }} \
+    --cpd_operator_ns={{ project_cpd_inst_operators | quote }} \
+    --cpd_instance_ns={{ project_cpd_inst_operands | quote }} \
+    --license_acceptance="true" \
+    --block_storage_class={{ stg_class_block | quote }}
+  changed_when: false
 - name: Apply the OLM
   ansible.builtin.shell: |
-    cpd-cli manage apply-olm --release={{ version | quote}} --cpd_operator_ns={{ project_cpd_inst_operators | quote }} --components={{ components | quote }}
+    cpd-cli manage apply-olm \
+    --release={{ version | quote }} \
+    --cpd_operator_ns={{ project_cpd_inst_operators | quote }} \
+    --components={{ components | quote }}
+  changed_when: false
 - name: Apply the CRs (Custom Resources)
   ansible.builtin.shell: |
-    cpd-cli manage apply-cr --release={{ version | quote}} --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --components={{ components | quote }} --block_storage_class={{ stg_class_block | quote }} --file_storage_class={{ stg_class_file | quote }} --license_acceptance="true"
+    cpd-cli manage apply-cr \
+    --release={{ version | quote }} \
+    --cpd_instance_ns={{ project_cpd_inst_operands | quote }} \
+    --components={{ components | quote }} \
+    --block_storage_class={{ stg_class_block | quote }} \
+    --file_storage_class={{ stg_class_file | quote }} \
+    --license_acceptance="true"
+  changed_when: false
 - name: Get CP4D Instance Details
   ansible.builtin.shell: |
-    cpd-cli manage get-cpd-instance-details --cpd_instance_ns={{ project_cpd_inst_operands | quote }} --get_admin_initial_credentials="true"
+    cpd-cli manage get-cpd-instance-details \
+    --cpd_instance_ns={{ project_cpd_inst_operands | quote }} \
+    --get_admin_initial_credentials="true"
+  changed_when: false
   register: output
 - name: CP4D Credentials
-  debug:
+  ansible.builtin.debug:
     msg: "{{ output.stdout_lines }}"
+  changed_when: false

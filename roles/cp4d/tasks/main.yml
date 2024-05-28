@@ -102,6 +102,10 @@
   changed_when: false
   register: output
 - name: CP4D Credentials
-  ansible.builtin.debug:
-    msg: "{{ output.stdout_lines }}"
+  ansible.builtin.command: "echo {{ output.stdout_lines[index].item }}"
+  loop: "{{ output.stdout_lines }}"
+  loop_control:
+    index_var: index
+  when: >-
+    "CPD" in output.stdout_lines[index]
   changed_when: false

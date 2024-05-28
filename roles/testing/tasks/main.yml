@@ -1,0 +1,22 @@
+---
+# Verify openshift version early
+- name: Log cpd-cli into Openshift
+  ansible.builtin.shell: |
+    cpd-cli manage login-to-ocp {{ ocp_login }}
+  changed_when: false
+- name: Get CP4D Instance Details
+  ansible.builtin.shell: |
+    cpd-cli manage get-cpd-instance-details \
+    --cpd_instance_ns={{ project_cpd_inst_operands | quote }} \
+    --get_admin_initial_credentials="true"
+  changed_when: false
+  register: output
+- name: CP4D Credentials
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop: "{{ output.stdout_lines }}"
+  loop_control:
+    index_var: index
+  when: >-
+    "CPD" in output.stdout_lines[index]
+  changed_when: false

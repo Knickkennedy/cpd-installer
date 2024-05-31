@@ -27,7 +27,7 @@ data:
   VERSION: "4.8.5"
   COMPONENTS: "ibm-cert-manager,ibm-licensing,scheduler,cpfs,cpd_platform"
   PODMAN_IGNORE_CGROUPSV1_WARNING: "true"
-  COMMAND: ""
+  COMMAND: "install"
 ---
 apiVersion: v1
 kind: ServiceAccount

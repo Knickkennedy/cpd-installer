@@ -1,5 +1,149 @@
 ---
-# Verify openshift version early
+- name: Check prereqs
+  block:
+    - name: Check OCP Version
+      block:
+        - name: Gather version of Openshift we are deployed to
+          kubernetes.core.k8s_info:
+            api_version: config.openshift.io/v1
+            kind: ClusterVersion
+          register: cv_list
+        - name: Parse out OCP Version
+          ansible.builtin.set_fact:
+            ocp_version: "{{ cv_list.resources |
+                                map(attribute='status.desired.version') |
+                                first }}"
+        - name: Verify version of Openshift for CP4D to install correctly
+          ansible.builtin.assert:
+            that:
+              - ocp_version is version('4.12.0', '>=', version_type='semver')
+    - name: Verify cluster URL was provided
+      ansible.builtin.assert:
+        that:
+          - ocp_url != ""
+    - name: Verify Login Credentials for the cluster
+      ansible.builtin.assert:
+        that: >
+          ((ocp_username != "") and
+          (ocp_password != "")) or
+          ocp_token != ""
+        fail_msg: "Double check login credentials for OCP in order to install CP4D successfully"
+        success_msg: "Login credentials are populated"
+    - name: Configure cpd-cli login credentials
+      ansible.builtin.set_fact:
+        ocp_login: >-
+          "--username={{ ocp_username | quote }}
+          --password={{ ocp_password | quote }}
+          --server={{ ocp_url | quote }}"
+      when: >-
+        ((ocp_username != "") and
+        (ocp_password != ""))
+    - name: Configure cpd-cli login credentials
+      ansible.builtin.set_fact:
+        ocp_login: "--server={{ ocp_url | quote }} --token={{ ocp_token | quote }}"
+      when: ocp_username == "" and ocp_password == "" and ocp_token != ""
+    - name: Verify 'OPENSHIFT_TYPE' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - openshift_type != ""
+        fail_msg: "'OPENSHIFT_TYPE' must be defined in order to run the installation of CP4D"
+        success_msg: "'OPENSHIFT_TYPE' found: {{ openshift_type }}"
+    - name: Verify 'IMAGE_ARCH' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - image_arch != ""
+        fail_msg: "'IMAGE_ARCH' must be defined in order to run the installation of CP4D"
+        success_msg: "'IMAGE_ARCH' found: {{ image_arch }}"
+    - name: Verify 'PROJECT_CERT_MANAGE' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - project_cert_manage != ""
+        fail_msg: "'PROJECT_CERT_MANAGE' must be defined in order to run the installation of CP4D"
+        success_msg: "'PROJECT_CERT_MANAGE' found: {{ project_cert_manage }}"
+    - name: Verify 'PROJECT_LICENSE_SERVICE' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - project_license_service != ""
+        fail_msg: "'PROJECT_LICENSE_SERVICE' must be defined in order to run the installation of CP4D"
+        success_msg: "'PROJECT_LICENSE_SERVICE' found: {{ project_license_service }}"
+    - name: Verify 'PROJECT_SCHEDULING_SERVICE' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - project_scheduling_service != ""
+        fail_msg: "'PROJECT_SCHEDULING_SERVICE' must be defined in order to run the installation of CP4D"
+        success_msg: "'PROJECT_SCHEDULING_SERVICE' found: {{ project_scheduling_service }}"
+    - name: Verify 'PROJECT_CPD_INST_OPERATORS' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - project_cpd_inst_operators != ""
+        fail_msg: "'PROJECT_CPD_INST_OPERATORS' must be defined in order to run the installation of CP4D"
+        success_msg: "'PROJECT_CPD_INST_OPERATORS' found: {{ project_cpd_inst_operators }}"
+    - name: Verify 'PROJECT_CPD_INST_OPERANDS' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - project_cpd_inst_operands != ""
+        fail_msg: "'PROJECT_CPD_INST_OPERANDS' must be defined in order to run the installation of CP4D"
+        success_msg: "'PROJECT_CPD_INST_OPERANDS' found: {{ project_cpd_inst_operands }}"
+    - name: Verify 'STG_CLASS_BLOCK' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - stg_class_block != ""
+        fail_msg: "'STG_CLASS_BLOCK' must be defined in order to run the installation of CP4D"
+        success_msg: "'STG_CLASS_BLOCK' found: {{ stg_class_block }}"
+    - name: Gather facts about block storage
+      kubernetes.core.k8s_info:
+        api_version: storage.k8s.io/v1
+        kind: StorageClass
+        name: "{{ stg_class_block }}"
+      register: sc_block_list
+    - name: Set block storage facts
+      ansible.builtin.set_fact:
+        ocp_block: "{{ sc_block_list.resources |
+                                map(attribute='metadata.name') |
+                                first }}"
+    - name: "Verify that block storage class provided exists in cluster"
+      ansible.builtin.assert:
+        that:
+          - ocp_block != ""
+    - name: Verify 'STG_CLASS_FILE' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - stg_class_file != ""
+        fail_msg: "'STG_CLASS_FILE' must be defined in order to run the installation of CP4D"
+        success_msg: "'STG_CLASS_FILE' found: {{ stg_class_file }}"
+    - name: Gather facts about file storage
+      kubernetes.core.k8s_info:
+        api_version: storage.k8s.io/v1
+        kind: StorageClass
+        name: "{{ stg_class_file }}"
+      register: sc_file_list
+    - name: Set file storage facts
+      ansible.builtin.set_fact:
+        ocp_file: "{{ sc_file_list.resources |
+                                map(attribute='metadata.name') |
+                                first }}"
+    - name: "Verify that file storage class exists in cluster"
+      ansible.builtin.assert:
+        that:
+          - ocp_file != ""
+    - name: Verify 'IBM_ENTITLEMENT_KEY' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - ibm_entitlement_key != ""
+        fail_msg: "'IBM_ENTITLEMENT_KEY' must be defined in order to run the installation of CP4D"
+        success_msg: "'IBM_ENTITLEMENT_KEY' found: {{ ibm_entitlement_key }}"
+    - name: Verify 'VERSION' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - version != ""
+        fail_msg: "'VERSION' must be defined in order to run the installation of CP4D"
+        success_msg: "'VERSION' found: {{ version }}"
+    - name: Verify 'COMPONENTS' environment variable exists
+      ansible.builtin.assert:
+        that:
+          - components != ""
+        fail_msg: "'COMPONENTS' must be defined in order to run the installation of CP4D"
+        success_msg: "'COMPONENTS' found: {{ components }}"
 - name: Log cpd-cli into Openshift
   ansible.builtin.shell: |
     cpd-cli manage login-to-ocp {{ ocp_login }}
@@ -53,7 +197,7 @@
     --release={{ version | quote }} \
     --license_acceptance="true" \
     --cert_manager_ns={{ project_cert_manage | quote }} \
-    --licensing_ns={{ project_license_service }}
+    --licensing_ns={{ project_license_service | quote }}
   changed_when: false
 - name: Install the scheduling service
   ansible.builtin.shell: |
@@ -102,7 +246,8 @@
   changed_when: false
   register: output
 - name: CP4D Credentials
-  ansible.builtin.command: "echo {{ output.stdout_lines[index].item }}"
+  ansible.builtin.debug:
+    msg: "{{ item }}"
   loop: "{{ output.stdout_lines }}"
   loop_control:
     index_var: index

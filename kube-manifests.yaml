@@ -107,7 +107,7 @@ spec:
       containers:
         - name: cpd-installer
           image: quay.io/skol/cpd-installer:v4.8.5
-          command: [ "ansible-playbook", "-v", "playbook/$(COMMAND).yml" ]
+          command: [ "ansible-playbook", "-v", "playbooks/$(COMMAND).yml" ]
           securityContext:
             privileged: true
           imagePullPolicy: Always
@@ -116,7 +116,7 @@ spec:
                 name: cpd-install-variables
           volumeMounts:
           - name: install-options-vol
-            mountPath: /home/podman/playbook/cpd-cli-workspace/olm-utils-workspace/work/install-options.yml
+            mountPath: /home/podman/playbooks/cpd-cli-workspace/olm-utils-workspace/work/install-options.yml
             subPath: install-options.yml
             readOnly: false
       restartPolicy: Never

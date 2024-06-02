@@ -187,9 +187,6 @@
     api_version: v1
     kind: Namespace
     state: present
-- name: Log in to OCP a second time
-  ansible.builtin.shell: |
-    cpd-cli manage login-to-ocp {{ ocp_login }}
   changed_when: false
 - name: Create the cert manager and licensing operators and namespaces
   ansible.builtin.shell: |
@@ -236,7 +233,8 @@
     --components={{ components | quote }} \
     --block_storage_class={{ stg_class_block | quote }} \
     --file_storage_class={{ stg_class_file | quote }} \
-    --license_acceptance="true"
+    --license_acceptance="true" \
+    --param-file="/tmp/work/install-options.yml"
   changed_when: false
 - name: Get CP4D Instance Details
   ansible.builtin.shell: |

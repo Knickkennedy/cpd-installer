@@ -60,7 +60,18 @@ PODMAN_IGNORE_CGROUPSV1_WARNING: "true"
 COMMAND: "install"
 ```
 
+## Component Customization
+
+> [!NOTE]
+> For component customization there is a second configmap named ```install-options``` where you can place any component customizations found [here](https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-specifying-installation-options-services#install-platform-param-file__spark-parms__title__1)
+
+Double check that your indentation matches the example provided in the configmap
+
+## Storage
+
 Make sure to populate ```STG_CLASS_FILE``` and ```STG_CLASS_BLOCK``` with the relevant file and block storage classes from your cluster
+
+## Installation
 
 Once everything is populated, run either:
 

@@ -29,6 +29,41 @@ data:
   PODMAN_IGNORE_CGROUPSV1_WARNING: "true"
   COMMAND: "install"
 ---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: install-options
+  namespace: cp4d-install
+immutable: false
+data:
+  install-options.yml: |
+    ################################################################################
+    # Analytics Engine powered by Apache Spark parameters
+    ################################################################################
+
+    # ------------------------------------------------------------------------------
+    # Analytics Engine powered by Apache Spark service configuration parameters
+    # ------------------------------------------------------------------------------
+    analyticsengine_spark_adv_enabled: true
+    #analyticsengine_job_auto_delete_enabled: true
+    #analyticsengine_kernel_cull_time: 30
+    #analyticsengine_image_pull_parallelism: "40"
+    #analyticsengine_image_pull_completions: "20"
+    #analyticsengine_kernel_cleanup_schedule: "*/30 * * * *"
+    #analyticsengine_job_cleanup_schedule: "*/30 * * * *"
+    #analyticsengine_skip_selinux_relabeling: false
+    #analyticsengine_mount_customizations_from_cchome: false
+
+    # ------------------------------------------------------------------------------
+    # Spark runtime configuration parameters
+    # ------------------------------------------------------------------------------
+    #analyticsengine_max_driver_cpu_cores: 5          # The number of CPUs to allocate to the Spark jobs driver. The default is 5.  
+    #analyticsengine_max_executor_cpu_cores: 5        # The number of CPUs to allocate to the Spark jobs executor. The default is 5.
+    #analyticsengine_max_driver_memory: "50g"         # The amount of memory, in gigabytes to allocate to the driver. The default is 50g.
+    #analyticsengine_max_executor_memory: "50g"       # The amount of memory, in gigabytes to allocate to the executor. The default is 50g. 
+    #analyticsengine_max_num_workers: 50              # The number of workers (also called executors) to allocate to spark jobs. The default is 50.
+    #analyticsengine_local_dir_scale_factor: 10       # The number that is used to calculate the temporary disk size on Spark nodes. The formula is temp_disk_size = number_of_cpu * local_dir_scale_factor. The default is 10.
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -72,12 +107,25 @@ spec:
       containers:
         - name: cpd-installer
           image: quay.io/skol/cpd-installer:v4.8.5
-          command: [ "ansible-playbook", "playbook/$(COMMAND).yml" ]
+          command: [ "ansible-playbook", "-v", "playbook/$(COMMAND).yml" ]
           securityContext:
             privileged: true
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: cpd-install-variables
+          volumeMounts:
+          - name: install-options-vol
+            mountPath: /home/podman/playbook/cpd-cli-workspace/olm-utils-workspace/work/install-options.yml
+            subPath: install-options.yml
+            readOnly: false
       restartPolicy: Never
+      volumes: 
+        - name: install-options-vol
+          configMap:
+            name: install-options
+            items:
+              - key: install-options.yml
+                path: install-options.yml
+            defaultMode: 0777
   backoffLimit: 4
